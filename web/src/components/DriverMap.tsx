@@ -132,11 +132,11 @@ export const DriverMap = ({ packageSlug }: { packageSlug: CarPackageSlug }) => {
         <MapContainer
           center={[riderLocation.latitude, riderLocation.longitude]}
           zoom={13}
-          style={{ height: '100%', width: '100%' }}
+          style={{ height: "100%", width: "100%" }}
           ref={mapRef}
         >
           <TileLayer
-            url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+            url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png?key=cb1_4dgx_1_796f388bb5c735f6940aac2e"
             attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors &copy; <a href='https://carto.com/'>CARTO</a>"
           />
 
@@ -153,20 +153,24 @@ export const DriverMap = ({ packageSlug }: { packageSlug: CarPackageSlug }) => {
           </Marker>
 
           {startLocation && (
-            <Marker position={[startLocation.longitude, startLocation.latitude]} icon={startLocationMarker}>
+            <Marker
+              position={[startLocation.longitude, startLocation.latitude]}
+              icon={startLocationMarker}
+            >
               <Popup>Start Location</Popup>
             </Marker>
           )}
 
           {destination && (
-            <Marker position={[destination.longitude, destination.latitude]} icon={destinationMarker}>
+            <Marker
+              position={[destination.longitude, destination.latitude]}
+              icon={destinationMarker}
+            >
               <Popup>Destination</Popup>
             </Marker>
           )}
 
-          {parsedRoute && (
-            <RoutingControl route={parsedRoute} />
-          )}
+          {parsedRoute && <RoutingControl route={parsedRoute} />}
 
           <MapClickHandler onClick={handleMapClick} />
         </MapContainer>
@@ -186,5 +190,5 @@ export const DriverMap = ({ packageSlug }: { packageSlug: CarPackageSlug }) => {
         </div>
       </div>
     </div>
-  )
+  );
 }

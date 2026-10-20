@@ -79,6 +79,7 @@ func (s *Service) UnregisterDriver(driverId string) {
 	for i, driver := range s.drivers {
 		if driver.Driver.Id == driverId {
 			s.drivers = append(s.drivers[:i], s.drivers[i+1:]...)
+			break
 		}
 	}
 }

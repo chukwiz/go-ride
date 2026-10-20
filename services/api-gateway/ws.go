@@ -5,19 +5,16 @@ import (
 	"net/http"
 	"ride-sharing/services/api-gateway/grpc_clients"
 	"ride-sharing/shared/contracts"
+	"ride-sharing/shared/messaging"
 	"ride-sharing/shared/proto/driver"
-
-	"github.com/gorilla/websocket"
 )
 
-var upgrader = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
-}
+var (
+	connManager = messaging.NewConnectionManager()
+)
 
 func handleRidersWebSocket(w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
+	conn, err := connManager.Upgrade(w, r)
 	if err != nil {
 		log.Println("websocket upgrade failed", err)
 		return
@@ -31,6 +28,9 @@ func handleRidersWebSocket(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	connManager.Add(userID, conn)
+	defer connManager.Remove(userID)
+
 	for {
 		_, message, err := conn.ReadMessage()
 		if err != nil {
@@ -43,7 +43,7 @@ func handleRidersWebSocket(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleDriversWebSocket(w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
+	conn, err := connManager.Upgrade(w, r)
 	if err != nil {
 		log.Println("websocket upgrade failed", err)
 		return
@@ -63,15 +63,20 @@ func handleDriversWebSocket(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	connManager.Add(userID, conn)
+
 	ctx := r.Context()
 
 	driverService, err := grpc_clients.NewDriverServiceClient()
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
+		return
 	}
 
 	// Closing connections
 	defer func() {
+		connManager.Remove(userID)
+
 		driverService.Client.UnRegisterDriver(ctx, &driver.RegisterDriverRequest{
 			DriverID:    userID,
 			PackageSlug: packageSlug,
@@ -91,12 +96,10 @@ func handleDriversWebSocket(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	msg := contracts.WSMessage{
-		Type: "driver.cmd.register",
+	if err := connManager.SendMessage(userID, contracts.WSMessage{
+		Type: contracts.DriverCmdRegister,
 		Data: driverData.Driver,
-	}
-
-	if err := conn.WriteJSON(msg); err != nil {
+	}); err != nil {
 		log.Printf("error sending message: %v", err)
 		return
 	}

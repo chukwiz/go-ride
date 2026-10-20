@@ -34,7 +34,7 @@ func (h *driverGrpcHandler) RegisterDriver(ctx context.Context, req *pb.Register
 	}, nil
 }
 
-func (h *driverGrpcHandler) UnregisterDriver(ctx context.Context, req *pb.RegisterDriverRequest) (*pb.RegisterDriverResponse, error) {
+func (h *driverGrpcHandler) UnRegisterDriver(ctx context.Context, req *pb.RegisterDriverRequest) (*pb.RegisterDriverResponse, error) {
 	h.service.UnregisterDriver(req.GetDriverID())
 
 	return &pb.RegisterDriverResponse{
